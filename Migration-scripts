@@ -1,0 +1,45 @@
+-- Create user table
+
+CREATE TABLE Users (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    Name VARCHAR(255) NOT NULL,
+    country_code VARCHAR(10) NOT NULL DEFAULT '+1',
+    phone VARCHAR(20) NOT NULL,
+    total_logins INT DEFAULT 0,
+    last_login TIMESTAMP NULL,
+    otp VARCHAR(255) DEFAULT NULL,
+    is_active TINYINT(1) DEFAULT 1,
+    is_deleted TINYINT(1) DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+
+-- create chat table
+
+CREATE TABLE Chats (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    total_question INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+
+-- create chat history table
+
+CREATE TABLE Chat_History (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    question TEXT NOT NULL,
+    answer TEXT NOT NULL,
+    sequence INT NOT NULL,
+    chat_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (chat_id) REFERENCES Chats(id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
