@@ -1,6 +1,6 @@
 # Zenn AI Backend API
 
-A simple Node.js backend API for phone-based authentication using OTP verification.
+A simple Node.js backend API for phone-based authentication using OTP verification via Twilio.
 
 ## Setup
 
@@ -26,8 +26,9 @@ DB_PASSWORD=your_mysql_password
 DB_NAME=zenn-ai
 DB_PORT=8080
 JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
-OTPLESS_CLIENT_ID=your_otpless_client_id
-OTPLESS_CLIENT_SECRET=your_otpless_client_secret
+TWILIO_ACCOUNT_SID=your_twilio_account_sid
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_PHONE_NUMBER=your_twilio_phone_number
 ```
 
 4. Create the MySQL database:
@@ -41,47 +42,6 @@ npm run dev
 ```
 
 ## API Endpoints
-
-### Testing OTPless Integration
-
-#### Test OTPless Configuration
-- **GET** `/api/auth/test-otpless`
-- **Response:**
-  ```json
-  {
-    "success": true,
-    "message": "OTPless test completed",
-    "result": {
-      "success": true,
-      "message": "OTPless connection successful",
-      "configured": true,
-      "status": { ... }
-    }
-  }
-  ```
-
-#### Test SMS Sending
-- **POST** `/api/auth/test-sms`
-- **Body:**
-  ```json
-  {
-    "country_code": "+91",
-    "phone": "9876543210"
-  }
-  ```
-- **Response:**
-  ```json
-  {
-    "success": true,
-    "message": "SMS test completed",
-    "otp": "123456",
-    "sms_result": {
-      "success": true,
-      "message": "OTP sent successfully via OTPless",
-      "otpless_response": { ... }
-    }
-  }
-  ```
 
 ### Authentication
 
@@ -104,7 +64,7 @@ npm run dev
     "expires_in": 300,
     "sms_result": {
       "success": true,
-      "message": "OTP sent successfully via OTPless"
+      "message": "OTP sent successfully via Twilio"
     }
   }
   ```
@@ -155,42 +115,6 @@ npm run dev
   }
   ```
 
-## Testing OTPless Integration
-
-### Step 1: Test Configuration
-```bash
-curl -X GET http://localhost:3000/api/auth/test-otpless
-```
-
-### Step 2: Test SMS Sending
-```bash
-curl -X POST http://localhost:3000/api/auth/test-sms \
-  -H "Content-Type: application/json" \
-  -d '{
-    "country_code": "+91",
-    "phone": "9876543210"
-  }'
-```
-
-### Step 3: Test Full Login Flow
-```bash
-# Step 1: Login and get OTP
-curl -X POST http://localhost:3000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "country_code": "+91",
-    "phone": "9876543210"
-  }'
-
-# Step 2: Verify OTP (use user_id and otp from previous response)
-curl -X POST http://localhost:3000/api/auth/verify-otp \
-  -H "Content-Type: application/json" \
-  -d '{
-    "user_id": 1,
-    "otp": "123456"
-  }'
-```
-
 ## Project Structure
 
 ```
@@ -205,7 +129,7 @@ curl -X POST http://localhost:3000/api/auth/verify-otp \
 ├── routes/
 │   └── authRoutes.js       # Authentication routes
 ├── services/
-│   └── otpService.js       # OTP generation and sending service
+│   └── otpService.js       # OTP generation and sending service (Twilio)
 ├── index.js                # Main server file
 ├── package.json
 ├── env.example             # Environment variables template
@@ -236,7 +160,7 @@ CREATE TABLE users (
 1. **Login Request**: User sends phone number and country code
 2. **User Creation**: If new user, creates entry with "Demo User" name
 3. **OTP Generation**: Generates 6-digit OTP and saves to database
-4. **OTP Sending**: Sends OTP via OTPless service (currently logs to console)
+4. **OTP Sending**: Sends OTP via Twilio
 5. **OTP Verification**: User sends OTP for verification
 6. **Token Generation**: Upon successful verification, generates JWT token
 
@@ -251,14 +175,12 @@ CREATE TABLE users (
 | `DB_NAME` | MySQL database name | zenn-ai |
 | `DB_PORT` | MySQL port | 8080 |
 | `JWT_SECRET` | JWT signing secret | (required) |
-| `OTPLESS_CLIENT_ID` | OTPless client ID | (required) |
-| `OTPLESS_CLIENT_SECRET` | OTPless client secret | (required) |
+| `TWILIO_ACCOUNT_SID` | Twilio account SID | (required) |
+| `TWILIO_AUTH_TOKEN` | Twilio auth token | (required) |
+| `TWILIO_PHONE_NUMBER` | Twilio phone number | (required) |
 
 ## Technologies Used
 
 - **Express.js** - Web framework
 - **MySQL** - Database
-- **mysql2** - MySQL client for Node.js
-- **JWT** - Authentication tokens
-- **axios** - HTTP client for API calls
-- **nodemon** - Development server 
+- **Twilio** - SMS OTP 

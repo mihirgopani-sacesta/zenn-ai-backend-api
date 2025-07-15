@@ -10,25 +10,6 @@ const generateToken = (userId) => {
   });
 };
 
-// Test OTPless configuration
-const testOTPless = async (req, res) => {
-  try {
-    const testResult = await OTPService.testOTPlessConnection();
-    
-    res.json({
-      success: true,
-      message: 'OTPless test completed',
-      result: testResult
-    });
-  } catch (error) {
-    console.error('OTPless test error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error during OTPless test'
-    });
-  }
-};
-
 // Test SMS sending
 const testSMS = async (req, res) => {
   try {
@@ -85,27 +66,22 @@ const login = async (req, res) => {
     // Create or find user
     const user = await User.createOrFind(connection, { country_code, phone });
 
-    // Static OTP for testing
-    const otp = "7898";
+    // Generate OTP
+    const otp = OTPService.generateOTP();
 
     // Save OTP to database
     await User.updateOTP(connection, user.id, otp);
 
-    // Comment out OTPless SMS sending
-    // const smsResult = await OTPService.sendOTP(phone, country_code, otp);
-    console.log(`[STATIC OTP] OTP ${otp} for ${country_code}${phone}`);
+    // Send OTP via Twilio
+    const smsResult = await OTPService.sendOTP(phone, country_code, otp);
 
     res.json({
       success: true,
       message: 'OTP sent successfully',
       user_id: user.id,
-      otp: otp, // Static OTP for testing
-      expires_in: 300, // 5 minutes in seconds
-      sms_result: {
-        success: true,
-        message: 'Static OTP sent for testing',
-        static_mode: true
-      }
+      otp: otp,
+      expires_in: 300,
+      sms_result: smsResult
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -180,7 +156,6 @@ const getProfile = async (req, res) => {
 };
 
 module.exports = {
-  testOTPless,
   testSMS,
   login,
   verifyOTP,
